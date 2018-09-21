@@ -1,0 +1,160 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>主页</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link href="https://cdn.bootcss.com/bootstrap-select/1.12.1/css/bootstrap-select.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/4.1.0.rc2/echarts.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/z.src.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ui.js' %}"></script>
+    <style>
+        #echart {
+            width: 1300px;
+            height: 500px;
+            margin: 30px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-group">
+        <label class="col-lg-1 control-label">交易所:</label>
+        <div class="col-lg-6">
+            <select id="exchange" class="selectpicker show-menu-arrow" multiple>
+            </select>
+        </div>
+        <span><input id="start_time" type="text" value="" placeholder="起始时间"></span> -
+        <span><input id="end_time" type="text" value="" placeholder="结束时间"></span>
+        <button id="submit" onclick="getVal()">查询</button>
+    </div>
+    <div id="echart"></div>
+    <script>
+        var start_time = Z.ui.Calendar('#start_time', {
+            {#chosenDate:'2018-09-20'#}
+
+        });
+        var end_time = Z.ui.Calendar('#end_time', {
+            {#chosenDate:'2018-09-20'#}
+
+        })
+    </script>
+<script type="text/javascript">
+$(document).ready(
+    function(){
+    // 返回交易所名
+    $("#exchange").empty(); //清空下拉列表
+    $.ajax({
+        url:"/names/",
+        type:"GET",
+        error:function(){
+        },
+        success:function(data){
+            var exchangeList = data;
+
+            if(exchangeList instanceof Array){
+
+                var option =  "<option value='99'>所有</option>";
+                for(var i=0; i<exchangeList.length; i++){
+                    option=option+"<option value='"+exchangeList[i].name+"'>"+exchangeList[i].name+"</option>";
+                }
+                    $("#exchange").append(option);
+            }
+        },
+
+    });
+ });
+    function getVal() {
+
+            var start = start_time.currDate.toLocaleDateString();
+            var end = end_time.currDate.toLocaleDateString();
+            var name_list = $('#exchange').val();
+            var names = name_list.join(',');
+
+            var myChart = echarts.init(document.getElementById('echart'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: ''
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    top: -5,
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '1%',
+                    containLabel: true
+                },
+                xAxis: {
+                    data: []
+                },
+                yAxis: [
+                    {
+                        name:'交易所涨幅',
+                        type:'value',
+
+                    },
+                    {
+                        name:'以太坊涨幅',
+                        type:'value',
+
+                    }
+                ],
+                series: []
+            };
+            // 使用刚指定的配置项和数据显示图表。
+
+            $.ajax({
+                url:"/exchange_rose/?name=" + names + '&start_time=' + start + '&end_time=' + end,
+                type: 'GET',
+                error:function(error_data){
+                    console.log(error_data)
+                },
+                success:function (data) {
+                    exchange_data = data[0];
+                    eth_data = data[1];
+                    {#console.log(eth_data);#}
+                    let flag = true;
+                    let eth_flag = true;
+                    for (var key in exchange_data) {
+                var obj = {name: key, data: [], type: 'line', smooth: true, yAxisIndex:0};
+
+                exchange_data[key].forEach(b => {
+                    obj.data.push(b.grow_percent)
+                if (flag) {
+                    option.xAxis.data.push(b.tag)
+
+                }
+            })
+                flag = false;
+                option.series.push(obj)
+            }
+
+            for (var key in eth_data) {
+                var obj2 = {name: key, data: [], type: 'line', smooth: true,  yAxisIndex:1};
+
+                eth_data[key].forEach(b => {
+                    obj2.data.push(b.grow_percent)
+
+            })
+                eth_flag = false;
+                option.series.push(obj2)
+            }
+            myChart.setOption(option);
+                }
+            })
+        }
+</script>
+
+</body>
+
+</html>
