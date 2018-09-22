@@ -58,11 +58,12 @@ $(document).ready(
 
             if(exchangeList instanceof Array){
 
-                var option =  "<option value='99'>所有</option>";
+                var option =  "<option value='all'>所有</option>";
                 for(var i=0; i<exchangeList.length; i++){
                     option=option+"<option value='"+exchangeList[i].name+"'>"+exchangeList[i].name+"</option>";
                 }
                     $("#exchange").append(option);
+                    $("#exchange").selectpicker('refresh');
             }
         },
 
@@ -103,6 +104,10 @@ $(document).ready(
                         type:'value',
 
                     },
+                    {
+                        name:'以太坊涨幅',
+                        type:'value',
+                    }
                 ],
                 series: []
             };
@@ -116,7 +121,9 @@ $(document).ready(
                 },
                 success:function (data) {
                     balance_data = data[0];
+                    eth_data = data[1];
                     let flag = true;
+                    let eth_flag = true;
                     for (var key in balance_data) {
                 var obj = {name: key, data: [], type: 'line', smooth: true, yAxisIndex:0};
 
@@ -129,6 +136,17 @@ $(document).ready(
             })
                 flag = false;
                 option.series.push(obj)
+            }
+
+            for (var key in eth_data) {
+                var obj2 = {name: key, data: [], type: 'line', smooth: true,  yAxisIndex:1};
+
+                eth_data[key].forEach(b => {
+                    obj2.data.push(b.grow_percent)
+
+            })
+                eth_flag = false;
+                option.series.push(obj2)
             }
 
             myChart.setOption(option);
