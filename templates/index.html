@@ -62,7 +62,8 @@ $(document).ready(
                 for(var i=0; i<exchangeList.length; i++){
                     option=option+"<option value='"+exchangeList[i].name+"'>"+exchangeList[i].name+"</option>";
                 }
-                    $("#exchange").append(option);
+                $("#exchange").append(option);
+                $("#exchange").selectpicker('refresh');
             }
         },
 
