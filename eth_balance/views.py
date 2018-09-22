@@ -93,6 +93,51 @@ def exchange_rose(request):
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 
+def exchange_balance(request):
+    d = dict()
+    data = list()
+    name_list = request.GET.getlist('name', None)
+    start_time = request.GET.get('start_time', None)
+    end_time = request.GET.get('end_time', None)
+    names = "','".join(name_list[0].split(','))
+    with connection.cursor() as cursor:
+        sql = """SELECT addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
+                FROM `eth_exchange` ex 
+                INNER JOIN `eth_exchange_address` addr ON ex.`address` = addr.`address`
+                WHERE name IN ('%s') and ex.`tag` BETWEEN '%s' AND '%s'
+                GROUP BY addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (names, start_time, end_time)
+        cursor.execute(sql)
+
+        row = cursor.fetchall()
+    row_name = groupby(row, lambda x: x[0])
+    for k, v in row_name:
+        _list = list()
+        for i in v:
+            _list.append(i)
+        for idx, item in enumerate(_list):
+            if not item[0] in d.keys():
+                name = item[0]
+                detail = list()
+                detail.append({
+                    'tag': item[1],
+                    'balance': item[2]
+                })
+                d[name] = detail
+            else:
+                name = item[0]
+                d[name].append({
+                    'tag': item[1],
+                    'balance': item[2]
+                })
+    data.append(d)
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
 class IndexView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'index.html')
+
+
+class BalanceView(View):
+    def get(self, requset):
+        return render(requset, 'balance.html')
