@@ -1,10 +1,18 @@
 # _*_ encoding: utf-8 _*_
+import decimal
 import json
 from itertools import groupby
 from django.http import HttpResponse
 from django.db import connection
 from django.shortcuts import render
 from django.views.generic import View
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def _iterencode(self, o, markers=None):
+        if isinstance(o, decimal.Decimal):
+            return (str(o) for o in [0])
+        return super(DecimalEncoder, self)._iterencode(o, markers)
 
 
 def query_names(request):
@@ -120,14 +128,14 @@ def exchange_balance(request):
                 detail = list()
                 detail.append({
                     'tag': item[1],
-                    'balance': item[2]
+                    'balance': str(item[2])
                 })
                 d[name] = detail
             else:
                 name = item[0]
                 d[name].append({
                     'tag': item[1],
-                    'balance': item[2]
+                    'balance': str(item[2])
                 })
     data.append(d)
     return HttpResponse(json.dumps(data), content_type='application/json')
@@ -139,5 +147,5 @@ class IndexView(View):
 
 
 class BalanceView(View):
-    def get(self, requset):
-        return render(requset, 'balance.html')
+    def get(self, request):
+        return render(request, 'balance.html')
