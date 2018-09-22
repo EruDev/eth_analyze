@@ -52,11 +52,11 @@ def exchange_rose(request):
             row = cursor.fetchall()
     else:
         with connection.cursor() as cursor:
-            sql = """SELECT addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
+            sql = """SELECT 'all'as name, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
                         FROM `eth_exchange` ex 
                         INNER JOIN `eth_exchange_address` addr ON ex.`address` = addr.`address`
                         WHERE ex.tag BETWEEN '%s' AND '%s'
-                        GROUP BY addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (start_time, end_time)
+                        GROUP BY 'all', DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (start_time, end_time)
             cursor.execute(sql)
 
             row = cursor.fetchall()
@@ -137,11 +137,11 @@ def exchange_balance(request):
             row = cursor.fetchall()
     else:
         with connection.cursor() as cursor:
-            sql = """SELECT addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
+            sql = """SELECT 'all' as name, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
                         FROM `eth_exchange` ex 
                         INNER JOIN `eth_exchange_address` addr ON ex.`address` = addr.`address`
                         WHERE ex.tag BETWEEN '%s' AND '%s'
-                        GROUP BY addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (start_time, end_time)
+                        GROUP BY 'all', DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (start_time, end_time)
             cursor.execute(sql)
 
             row = cursor.fetchall()
