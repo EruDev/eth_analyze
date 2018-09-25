@@ -71,8 +71,29 @@ $(document).ready(
  });
     function getVal() {
 
-            var start = start_time.currDate.toLocaleDateString();
-            var end = end_time.currDate.toLocaleDateString();
+            var start_year = String(start_time.currDate.getFullYear()),
+                start_month = String(start_time.currDate.getMonth() + 1),
+                start_day = String(start_time.currDate.getDate());
+            var end_year = String(end_time.currDate.getFullYear()),
+                end_month = String(end_time.currDate.getMonth() + 1),
+                end_day = String(end_time.currDate.getDate());
+
+            if (start_month.length < 2){
+                start_month = '0' + start_month
+            }
+            if (start_day.length < 2){
+                start_day = '0' + start_day
+            }
+
+            if (end_month.length < 2){
+                end_month = '0' + end_month
+            }
+            if (end_day.length < 2){
+                end_day = '0' + end_day
+            }
+            var start = start_year + start_month + start_day + '12';
+            var end = end_year + end_month + end_day + '12';
+
             var name_list = $('#exchange').val();
             var names = name_list.join(',');
 
