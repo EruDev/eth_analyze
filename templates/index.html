@@ -36,11 +36,9 @@
     <script>
         var start_time = Z.ui.Calendar('#start_time', {
             {#chosenDate:'2018-09-20'#}
-
         });
         var end_time = Z.ui.Calendar('#end_time', {
             {#chosenDate:'2018-09-20'#}
-
         })
     </script>
 <script type="text/javascript">
@@ -55,9 +53,7 @@ $(document).ready(
         },
         success:function(data){
             var exchangeList = data;
-
             if(exchangeList instanceof Array){
-
                 var option =  "<option value='all'>所有</option>";
                 for(var i=0; i<exchangeList.length; i++){
                     option=option+"<option value='"+exchangeList[i].name+"'>"+exchangeList[i].name+"</option>";
@@ -66,18 +62,35 @@ $(document).ready(
                 $("#exchange").selectpicker('refresh');
             }
         },
-
     });
  });
     function getVal() {
+            var start_year = String(start_time.currDate.getFullYear()),
+                start_month = String(start_time.currDate.getMonth() + 1),
+                start_day = String(start_time.currDate.getDate());
+            var end_year = String(end_time.currDate.getFullYear()),
+                end_month = String(end_time.currDate.getMonth() + 1),
+                end_day = String(end_time.currDate.getDate());
 
-            var start = start_time.currDate.toLocaleDateString();
-            var end = end_time.currDate.toLocaleDateString();
+            if (start_month.length < 2){
+                start_month = '0' + start_month
+            }
+            if (start_day.length < 2){
+                start_day = '0' + start_day
+            }
+
+            if (end_month.length < 2){
+                end_month = '0' + end_month
+            }
+            if (end_day.length < 2){
+                end_day = '0' + end_day
+            }
+            var start = start_year + start_month + start_day + '12';
+            var end = end_year + end_month + end_day + '12';
+
             var name_list = $('#exchange').val();
             var names = name_list.join(',');
-
             var myChart = echarts.init(document.getElementById('echart'));
-
             // 指定图表的配置项和数据
             var option = {
                 title: {
@@ -102,7 +115,6 @@ $(document).ready(
                     {
                         name:'交易所涨幅',
                         type:'value',
-
                     },
                     {
                         name:'以太坊涨幅',
@@ -112,7 +124,6 @@ $(document).ready(
                 series: []
             };
             // 使用刚指定的配置项和数据显示图表。
-
             $.ajax({
                 url:"/exchange_rose/?name=" + names + '&start_time=' + start + '&end_time=' + end,
                 type: 'GET',
@@ -127,30 +138,24 @@ $(document).ready(
                     let eth_flag = true;
                     for (var key in exchange_data) {
                 var obj = {name: key, data: [], type: 'line', smooth: true, yAxisIndex:0};
-
                 exchange_data[key].forEach(b => {
                     obj.data.push(b.grow_percent)
                 if (flag) {
                     option.xAxis.data.push(b.tag)
-
                 }
             })
                 flag = false;
                 option.series.push(obj)
             }
-
             for (var key in eth_data) {
                 var obj2 = {name: key, data: [], type: 'line', smooth: true,  yAxisIndex:1};
-
                 eth_data[key].forEach(b => {
                     obj2.data.push(b.grow_percent)
-
             })
                 eth_flag = false;
                 option.series.push(obj2)
             }
             myChart.setOption(option, true);
-
                 }
             })
         }

@@ -1,4 +1,6 @@
 # _*_ encoding: utf-8 _*_
+
+import datetime
 import decimal
 import json
 from itertools import groupby
@@ -35,28 +37,38 @@ def exchange_rose(request):
     d = dict()
     data = []
     name_list = request.GET.getlist('name', None)
-    start_time = request.GET.get('start_time', None)
-    end_time = request.GET.get('end_time', None)
+    start = request.GET.get('start_time', None)
+    end = request.GET.get('end_time', None)
+
     names = "','".join(name_list[0].split(','))
+    s = datetime.datetime.strptime(start, '%Y%m%d%H')
+    e = datetime.datetime.strptime(end, '%Y%m%d%H')
+    counts = (e - s).days
+    times_list = list()
+
+    for i in range(1, counts+1):
+        start_time = (s + datetime.timedelta(days=i)).strftime('%Y%m%d%H')
+        times_list.append(start_time)
+    times_tuple = tuple(times_list)
 
     if names != 'all':
 
         with connection.cursor() as cursor:
-            sql = """SELECT addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
+            sql = """SELECT addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H'), SUM(ex.`balance`) 
                     FROM `eth_exchange` ex 
                     INNER JOIN `eth_exchange_address` addr ON ex.`address` = addr.`address`
-                    WHERE name IN ('%s') and ex.`tag` BETWEEN '%s' AND '%s'
-                    GROUP BY addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (names, start_time, end_time)
+                    WHERE addr.`name` IN ('%s') and DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H') IN %s
+                    GROUP BY addr.`name`, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H')""" % (names, times_tuple)
             cursor.execute(sql)
 
             row = cursor.fetchall()
     else:
         with connection.cursor() as cursor:
-            sql = """SELECT 'all'as name, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d'), SUM(ex.`balance`) 
+            sql = """SELECT 'all'as name, DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H'), SUM(ex.`balance`) 
                         FROM `eth_exchange` ex 
                         INNER JOIN `eth_exchange_address` addr ON ex.`address` = addr.`address`
-                        WHERE ex.tag BETWEEN '%s' AND '%s'
-                        GROUP BY 'all', DATE_FORMAT(ex.`tag`, '%%Y%%m%%d')""" % (start_time, end_time)
+                        WHERE DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H') IN %s
+                        GROUP BY 'all', DATE_FORMAT(ex.`tag`, '%%Y%%m%%d%%H')""" % (times_tuple,)
             cursor.execute(sql)
 
             row = cursor.fetchall()
@@ -91,12 +103,12 @@ def exchange_rose(request):
                     })
 
     with connection.cursor() as cursor:
-        sql = """SELECT DATE_FORMAT(eth.`tag`,'%%Y%%m%%d'), price_usd 
-                FROM fxh_eth_price eth
-                WHERE tag BETWEEN '%s' AND '%s'
-                ORDER BY DATE_FORMAT(eth.`tag`, '%%Y%%m%%d')
-                """ % (start_time, end_time)
-        cursor.execute(sql)
+        sql2 = """SELECT DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H'), price_usd
+        FROM fxh_eth_price fxh
+        WHERE DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H') IN %s
+        GROUP BY DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H')
+                """ % (times_tuple,)
+        cursor.execute(sql2)
         eths = cursor.fetchall()
 
     eth = list()
