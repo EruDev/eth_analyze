@@ -103,7 +103,7 @@ def exchange_rose(request):
                     })
 
     with connection.cursor() as cursor:
-        sql2 = """SELECT DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H'), price_usd
+        sql2 = """SELECT DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H'), SUM(price_usd)
         FROM fxh_eth_price fxh
         WHERE DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H') IN %s
         GROUP BY DATE_FORMAT(fxh.`tag`, '%%Y%%m%%d%%H')
@@ -189,10 +189,10 @@ def exchange_balance(request):
                 })
 
     with connection.cursor() as cursor:
-        sql = """SELECT DATE_FORMAT(eth.`tag`,'%%Y%%m%%d%%H'), price_usd 
+        sql = """SELECT DATE_FORMAT(eth.`tag`,'%%Y%%m%%d%%H'), SUM(price_usd) 
                 FROM fxh_eth_price eth
                 WHERE DATE_FORMAT(eth.`tag`, '%%Y%%m%%d%%H') IN %s
-                ORDER BY DATE_FORMAT(eth.`tag`, '%%Y%%m%%d%%H')
+                GROUP BY DATE_FORMAT(eth.`tag`, '%%Y%%m%%d%%H')
                 """ % (times_tuple,)
         cursor.execute(sql)
         eths = cursor.fetchall()
