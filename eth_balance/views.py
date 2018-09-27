@@ -90,7 +90,7 @@ def exchange_rose(request):
                     grow_percent = float('%.3f' % ((item[2] - pre_val) / pre_val))
                     detail.append({
                         'tag': item[1],
-                        'grow_percent': grow_percent
+                        'grow_percent': grow_percent * 100
                     })
                     d[name] = detail
                 else:
@@ -99,7 +99,7 @@ def exchange_rose(request):
                     grow_percent = float('%.3f' % ((item[2] - pre_val) / pre_val))
                     d[name].append({
                         'tag': item[1],
-                        'grow_percent': grow_percent
+                        'grow_percent': grow_percent * 100
                     })
 
     with connection.cursor() as cursor:
@@ -119,7 +119,7 @@ def exchange_rose(request):
         grow_percent = float('%.3f' % ((cur - pre) / pre))
         eth.append({
             'tag': item[0],
-            'grow_percent': grow_percent
+            'grow_percent': grow_percent * 100
         })
     eth_dict['eth'] = eth
     data.append(d)
@@ -205,7 +205,7 @@ def exchange_balance(request):
         grow_percent = float('%.3f' % ((cur - pre) / pre))
         eth.append({
             'tag': item[0],
-            'grow_percent': grow_percent
+            'grow_percent': grow_percent * 100
         })
     eth_dict['eth'] = eth
     data.append(d)
